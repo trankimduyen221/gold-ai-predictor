@@ -40,7 +40,8 @@ def _parse_db_url(url: str) -> dict:
         'password': result.password,
         'database': result.path[1:],
         'port': result.port or 4000,
-        'ssl': {'ssl_ca': '/etc/ssl/certs/ca-certificates.crt'} if 'ssl_ca' in result.query or 'ssl_verify_cert=true' in result.query else None
+        # Luôn bật cấu hình SSL an toàn để kết nối mượt mà với TiDB Cloud
+        'ssl': {'ssl_ca': '/etc/ssl/certs/ca-certificates.crt'}
     }
 
 def _ph(db_type: str) -> str:
