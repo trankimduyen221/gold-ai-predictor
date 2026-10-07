@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./backend
+    container_name: gold_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app   # <--- Thêm dòng này để mount code thực tế vào container
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: gold_frontend
+    ports:
+      - "3000:80"   # 3000 máy thật trỏ vào 80 của Nginx
+    depends_on:
+      - backend
+    restart: always
