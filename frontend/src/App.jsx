@@ -7,7 +7,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API = import.meta.env.VITE_API_URL || (
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : 'https://gold-ai-predictor.onrender.com/' // link onrender
+);
 
 const fmt = (v, d = 2) => {
   if (v === null || v === undefined || Number.isNaN(Number(v))) return '—';
