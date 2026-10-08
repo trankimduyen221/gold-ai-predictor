@@ -40,7 +40,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Gold AI Predictor", lifespan=lifespan)
 
-# Cho phép các tên miền frontend gọi vào (bỏ dấu "*" để dùng được allow_credentials=True)
 origins = [
     "https://gold-ai-predictor.vercel.app",
     "http://localhost:5173",
