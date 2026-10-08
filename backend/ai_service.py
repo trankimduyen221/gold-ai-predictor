@@ -181,11 +181,18 @@ def _gemini_text(prompt: str) -> Optional[str]:
         return res
     return None
 
-def build_forecast_from_yesterday(yesterday_data: Dict[str, Any], current_data: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
+def build_forecast_from_yesterday(yesterday_data: Optional[Dict[str, Any]], current_data: Optional[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
     today = datetime.now(VN_TZ).date()
     forecast = {"sjc": [], "world": []}
 
-    base_sjc = current_data.get("sjc", {}).get("sell") or yesterday_data.get("sjc_sell") or 143.50
+    # Đảm bảo dữ liệu không bị None gây lỗi AttributeError
+    safe_current = current_data if current_data is not None else {}
+    safe_yesterday = yesterday_data if yesterday_data is not None else {}
+
+    sjc_dict = safe_current.get("sjc") or {}
+    world_dict = safe_current.get("world") or {}
+
+    base_sjc = sjc_dict.get("sell") or safe_yesterday.get("sjc_sell") or 143.50
     sjc_val = base_sjc
     
     sjc_factors = [0.003, 0.002, -0.001, 0.004, 0.001, 0.005, 0.002]
@@ -197,7 +204,7 @@ def build_forecast_from_yesterday(yesterday_data: Dict[str, Any], current_data: 
             "sell": round(sjc_val, 2)
         })
 
-    base_world = current_data.get("world", {}).get("sell") or yesterday_data.get("world_price") or 4141.80
+    base_world = world_dict.get("sell") or safe_yesterday.get("world_price") or 4141.80
     world_val = base_world
     world_factors = [0.002, -0.001, 0.003, 0.001, -0.002, 0.004, 0.001]
     for i in range(1, 8):
