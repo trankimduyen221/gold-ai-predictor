@@ -40,17 +40,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Gold AI Predictor", lifespan=lifespan)
 
-origins = [
-    "https://gold-ai-predictor.vercel.app",
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:5173",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
