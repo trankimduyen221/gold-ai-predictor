@@ -10,7 +10,7 @@ import {
 const API = import.meta.env.VITE_API_URL || (
   window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:8000'
-    : 'https://gold-ai-predictor.onrender.com/' // link onrender
+    : 'https://gold-ai-predictor.onrender.com'
 );
 
 const fmt = (v, d = 2) => {
