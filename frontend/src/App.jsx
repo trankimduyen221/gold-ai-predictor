@@ -64,7 +64,13 @@ export default function App() {
     }
   };
 
-useEffect(() => { 
+  // 1. Tự động gọi API khi mới vào trang
+  useEffect(() => {
+    fetchData(selectedWeek);
+  }, [selectedWeek]);
+
+  // 2. Cuộn chat khi có tin nhắn mới
+  useEffect(() => { 
     if (messages.length > 1) {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); 
     }
@@ -100,13 +106,17 @@ useEffect(() => {
   const predictions = data?.predictions || [];
 
   // Lấy bản ghi giá SJC gần nhất trong lịch sử nếu cào thực tế hôm nay bị null
-  const lastHistoryWithSjc = [...history].reverse().find(h => h.sjc_sell !== null && h.sjc_sell !== undefined);
+  const lastHistoryWithSjc = useMemo(() => {
+    return [...history].reverse().find(h => h.sjc_sell !== null && h.sjc_sell !== undefined);
+  }, [history]);
 
-  const cur = {
-    sjc_buy: data?.current_data?.sjc_buy ?? lastHistoryWithSjc?.sjc_buy,
-    sjc_sell: data?.current_data?.sjc_sell ?? lastHistoryWithSjc?.sjc_sell,
-    world_price: data?.current_data?.world_price ?? lastHistoryWithSjc?.world_price,
-  };
+  const cur = useMemo(() => {
+    return {
+      sjc_buy: data?.current_data?.sjc_buy ?? lastHistoryWithSjc?.sjc_buy,
+      sjc_sell: data?.current_data?.sjc_sell ?? lastHistoryWithSjc?.sjc_sell,
+      world_price: data?.current_data?.world_price ?? lastHistoryWithSjc?.world_price,
+    };
+  }, [data, lastHistoryWithSjc]);
 
   // TỔNG HỢP DỮ LIỆU VẼ BIỂU ĐỒ
   const chartData = useMemo(() => {
