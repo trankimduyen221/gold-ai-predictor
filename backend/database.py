@@ -34,14 +34,19 @@ def get_connection() -> Tuple[Any, str]:
 def _parse_db_url(url: str) -> dict:
     import urllib.parse as up
     result = up.urlparse(url)
+    
+    # Kiểm tra đường dẫn SSL chứng chỉ hệ thống
+    ssl_opts = {}
+    if os.path.exists("/etc/ssl/certs/ca-certificates.crt"):
+        ssl_opts = {"ca": "/etc/ssl/certs/ca-certificates.crt"}
+        
     return {
         'host': result.hostname,
         'user': result.username,
         'password': result.password,
         'database': result.path[1:],
         'port': result.port or 4000,
-        # Luôn bật cấu hình SSL an toàn để kết nối mượt mà với TiDB Cloud
-        'ssl': {'ssl_ca': '/etc/ssl/certs/ca-certificates.crt'}
+        'ssl': ssl_opts if ssl_opts else True
     }
 
 def _ph(db_type: str) -> str:
