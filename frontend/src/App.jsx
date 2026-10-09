@@ -64,8 +64,11 @@ export default function App() {
     }
   };
 
-  useEffect(() => { fetchData(selectedWeek); }, [selectedWeek]);
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+useEffect(() => { 
+    if (messages.length > 1) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); 
+    }
+  }, [messages]);
 
   const handleWeekChange = (e) => {
     setSelectedWeek(Number(e.target.value));
@@ -93,9 +96,17 @@ export default function App() {
     }
   };
 
-  const cur = data?.current_data || {};
   const history = data?.historical_data || [];
   const predictions = data?.predictions || [];
+
+  // Lấy bản ghi giá SJC gần nhất trong lịch sử nếu cào thực tế hôm nay bị null
+  const lastHistoryWithSjc = [...history].reverse().find(h => h.sjc_sell !== null && h.sjc_sell !== undefined);
+
+  const cur = {
+    sjc_buy: data?.current_data?.sjc_buy ?? lastHistoryWithSjc?.sjc_buy,
+    sjc_sell: data?.current_data?.sjc_sell ?? lastHistoryWithSjc?.sjc_sell,
+    world_price: data?.current_data?.world_price ?? lastHistoryWithSjc?.world_price,
+  };
 
   // TỔNG HỢP DỮ LIỆU VẼ BIỂU ĐỒ
   const chartData = useMemo(() => {
