@@ -246,11 +246,17 @@ async def get_gold_prediction() -> Dict[str, Any]:
     return await asyncio.to_thread(_predict_cached)
 
 async def chat_gold(message: str) -> str:
-    data = _predict_cached()
-    cur = data.get("current", {})
-    sjc_info = cur.get("sjc", {})
-    world_info = cur.get("world", {})
+    data = _predict_cached() or {}
     
+    # Bọc kiểm tra an toàn tránh bị NoneType AttributeError khi cào SJC lỗi
+    cur = data.get("current") or {}
+    sjc_info = cur.get("sjc") or {}
+    world_info = cur.get("world") or {}
+
+    sjc_buy = sjc_info.get("buy") if isinstance(sjc_info, dict) else None
+    sjc_sell = sjc_info.get("sell") if isinstance(sjc_info, dict) else None
+    world_sell = world_info.get("sell") if isinstance(world_info, dict) else None
+
     prompt = f"""
     Bạn là Trợ lý Smart Gold AI - chuyên gia phân tích chiến lược thị trường vàng và tài chính.
 
@@ -268,16 +274,16 @@ async def chat_gold(message: str) -> str:
       + Đưa ra phân tích chuyên sâu về xu hướng ngắn hạn/dài hạn, các yếu tố tác động (lãi suất, biến động thế giới, chênh lệch SJC với thế giới) và lời khuyên giao dịch tham khảo cho cả người mua lẫn người bán.
 
     - Dữ liệu thị trường hiện tại:
-      + Giá SJC Mua vào: {sjc_info.get('buy', '—')} triệu/lượng, Bán ra: {sjc_info.get('sell', '—')} triệu/lượng.
-      + Giá Vàng Thế Giới (XAU/USD): ${world_info.get('sell', '—')} /ounce.
+      + Giá SJC Mua vào: {sjc_buy if sjc_buy is not None else '—'} triệu/lượng, Bán ra: {sjc_sell if sjc_sell is not None else '—'} triệu/lượng.
+      + Giá Vàng Thế Giới (XAU/USD): ${world_sell if world_sell is not None else '—'} /ounce.
       + Phân tích chung: {data.get('analysis', '')}
 
     - Câu hỏi của người dùng: "{message}"
     """
-    
+
     res = _call_groq_sdk(prompt)
     if res:
         if res.startswith("ERR_CALL:"):
             return res.replace("ERR_CALL: ", "")
         return res
-    return "Không thể kết nối tới dịch vụ Smart Gold AI."
+    return "Không thể kết nối tới dịch vụ Smart Gold AI lúc này."
