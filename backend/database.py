@@ -19,11 +19,12 @@ TABLE = "gold_history"
 def get_connection() -> Tuple[Any, str]:
     if DATABASE_URL:
         import pymysql
-        # Kết nối tới TiDB Cloud / MySQL
+        # Luôn luôn dùng _parse_db_url để đảm bảo truyền đúng ssl config
+        conn_params = _parse_db_url(DATABASE_URL)
         conn = pymysql.connect(
             read_default_file=None,
             cursorclass=pymysql.cursors.DictCursor,
-            **pymysql.converters.urlparse(DATABASE_URL) if hasattr(pymysql.converters, "urlparse") else _parse_db_url(DATABASE_URL)
+            **conn_params
         )
         return conn, "mysql"
     
@@ -35,10 +36,11 @@ def _parse_db_url(url: str) -> dict:
     import urllib.parse as up
     result = up.urlparse(url)
     
-    # Kiểm tra đường dẫn SSL chứng chỉ hệ thống
     ssl_opts = {}
     if os.path.exists("/etc/ssl/certs/ca-certificates.crt"):
-        ssl_opts = {"ca": "/etc/ssl/certs/ca-certificates.crt"}
+        ssl_opts["ca"] = "/etc/ssl/certs/ca-certificates.crt"
+    elif os.path.exists("/etc/pki/tls/certs/ca-bundle.crt"):
+        ssl_opts["ca"] = "/etc/pki/tls/certs/ca-bundle.crt"
         
     return {
         'host': result.hostname,
@@ -46,7 +48,7 @@ def _parse_db_url(url: str) -> dict:
         'password': result.password,
         'database': result.path[1:],
         'port': result.port or 4000,
-        'ssl': ssl_opts if ssl_opts else True
+        'ssl': ssl_opts if ssl_opts else {"ssl_mode": "REQUIRED"}
     }
 
 def _ph(db_type: str) -> str:
