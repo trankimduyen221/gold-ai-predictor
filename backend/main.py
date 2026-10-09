@@ -52,33 +52,38 @@ app.add_middleware(
 @app.get("/api/predict")
 async def get_gold_data(week: int = Query(1, ge=1, le=4)):
     # Lấy dữ liệu cào giá mới nhất & tính dự báo
-    data = await get_gold_prediction()
+    data = await get_gold_prediction() or {}
     
     # Lấy lịch sử theo tuần được chọn (1, 2, 3, 4)
     selected_week_history = get_history_by_week(week)
 
-    cur = data.get("current", {})
+    # Bọc kiểm tra an toàn để tránh bị NoneType AttributeError
+    cur = data.get("current") or {}
+    sjc_cur = cur.get("sjc") or {}
+    world_cur = cur.get("world") or {}
+
     current_data = {
         "date": datetime.now(VN_TZ).strftime("%Y-%m-%d"),
-        "sjc_buy": cur.get("sjc", {}).get("buy"),
-        "sjc_sell": cur.get("sjc", {}).get("sell"),
-        "world_price": cur.get("world", {}).get("sell"),
+        "sjc_buy": sjc_cur.get("buy"),
+        "sjc_sell": sjc_cur.get("sell"),
+        "world_price": world_cur.get("sell"),
     }
 
     # CHỈ LƯU VÀ TRẢ VỀ DỰ BÁO TƯƠNG LAI KHI Ở TUẦN 1
     predictions_list = []
     if week == 1:
-        forecast_sjc = data.get("forecast", {}).get("sjc", [])
-        forecast_world = data.get("forecast", {}).get("world", [])
+        forecast = data.get("forecast") or {}
+        forecast_sjc = forecast.get("sjc") or []
+        forecast_world = forecast.get("world") or []
         
         # Lưu vết giá dự đoán mới nhất vào DB
         save_predicted_prices(forecast_sjc, forecast_world)
 
         by_date = {}
         for f in forecast_sjc:
-            by_date.setdefault(f["date"], {"date": f["date"]})["sjc_predict_sell"] = f["sell"]
+            by_date.setdefault(f["date"], {"date": f["date"]})["sjc_predict_sell"] = f.get("sell")
         for f in forecast_world:
-            by_date.setdefault(f["date"], {"date": f["date"]})["world_predict"] = f["sell"]
+            by_date.setdefault(f["date"], {"date": f["date"]})["world_predict"] = f.get("sell")
         predictions_list = [by_date[d] for d in sorted(by_date)]
 
     return {
