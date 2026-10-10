@@ -13,7 +13,7 @@
 ## 🏗️ 1. Kiến trúc & Công nghệ (Tech Stack)
 
 * **Backend Framework:** FastAPI (Python 3.10+), Uvicorn ASGI Server.
-* **Database:** SQLite (Sử dụng SQLAlchemy ORM) - Gọn nhẹ, lưu trữ local, dễ đem đi demo.
+* **Database:** MySQL
 * **AI Chatbot & Analysis:** Groq AI / Google Generative AI qua SDK chính thức.
 * **Data Fetching:** Thư viện `httpx` hoặc `requests` (Gọi API bên thứ 3 hoặc cào dữ liệu tối ưu, chống chặn IP).
 * **Frontend Framework:** React, Tailwind CSS, Recharts (Vẽ biểu đồ đường trực quan).
